@@ -18,7 +18,7 @@ namespace ToDoList.Controllers
         public IActionResult Index()
         {
             var todoListViewModel = GetAllTodos();
-            return View();
+            return View(todoListViewModel);
         }
 
         internal TodoViewModel GetAllTodos()
