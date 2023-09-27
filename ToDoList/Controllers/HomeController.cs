@@ -63,6 +63,43 @@ namespace ToDoList.Controllers
             };
         }
 
+        [HttpGet]
+        public JsonResult PopulateForm(int id)
+        {
+            var todo = GetById(id);
+            return Json(todo);
+        }
+
+        internal TodoItem GetById(int id)
+        {
+            TodoItem todo = new TodoItem();
+
+            using (SqliteConnection connection = new SqliteConnection("Data Source=db.sqlite"))
+            {
+                using (var tableCommand = connection.CreateCommand())
+                {
+                    connection.Open();
+                    tableCommand.CommandText = $"SELECT * FROM todo Where Id = '{id}'";
+
+                    using (var reader = tableCommand.ExecuteReader())
+                    {
+                        if (reader.HasRows)
+                        {
+                            reader.Read();
+                            todo.Id = reader.GetInt32(0);
+                            todo.Name = reader.GetString(1);
+                        }
+                        else
+                        {
+                            return todo;
+                        }
+                    }
+                }
+            }
+            
+            return todo;
+        }
+
         public RedirectResult Insert(TodoItem todo)
         {
             using (SqliteConnection connection = new SqliteConnection("Data Source=db.sqlite"))
@@ -83,6 +120,43 @@ namespace ToDoList.Controllers
             }
 
             return Redirect("https://localhost:7184/");
+        }
+
+        public RedirectResult Update(TodoItem todo)
+        {
+            using (SqliteConnection connection = new SqliteConnection("Data Source=db.sqlite"))
+            {
+                using (var tableCommand = connection.CreateCommand())
+                {
+                    connection.Open();
+                    tableCommand.CommandText = $"UPDATE todo SET name = '{todo.Name}' WHERE Id = '{todo.Id}'";
+
+                    try 
+                    {
+                        tableCommand.ExecuteNonQuery();
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
+                }
+            }
+            return Redirect("https://localhost:7184/");
+        }
+
+        public JsonResult Delete(int Id)
+        {
+            using (SqliteConnection connection = new SqliteConnection("Data Source=db.sqlite"))
+            {
+                using (var tableCommand = connection.CreateCommand())
+                {
+                    connection.Open();
+                    tableCommand.CommandText = $"DELETE from todo WHERE Id = '{Id}'";
+                    tableCommand.ExecuteNonQuery();
+                }
+            }
+            
+            return Json(new {});
         }
     }
 }
